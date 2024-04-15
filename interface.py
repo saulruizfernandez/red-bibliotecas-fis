@@ -1,6 +1,8 @@
 import tkinter as tk
 import datetime
 import locale
+import os
+from red import Usuario
 
 locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
@@ -50,7 +52,6 @@ class Interface(tk.Tk):
         self.base = tk.Frame(self, bg="white", width=1280, height=720)
         self.base.pack(fill="both", expand=True)  # Empaquetar el Frame base para que ocupe todo el espacio de la ventana
         self.iniciar_sesion_layout()  # Llamar al método para mostrar la interfaz de inicio de sesión
-        self.actual_interface = 0  # Variable para controlar la interfaz actual
         self.actual_user = None  # Variable para almacenar el usuario actual
         self.actual_user_data = None  # Variable para almacenar los datos del usuario actual
 
@@ -72,6 +73,80 @@ class Interface(tk.Tk):
 
 
 
+
+    # Método para crear un nuevo usuario
+    def crear_usuario(self, nombre, password, confirmar_password, correo, telefono, direccion):
+        if (password == confirmar_password and len(password) > 0 and len(nombre) > 0 and len(correo) > 0 and len(telefono) > 0 and len(direccion) > 0 and not os.path.exists(f"./users/{nombre}")):
+            self.actual_user = Usuario(nombre, password, correo, telefono, direccion)
+            self.actual_user.save_in_file()
+            self.actual_user_data = self.actual_user.get_info()
+            self.perfil_layout()
+        else:
+            popup = tk.Toplevel()
+            popup.title("Error")
+    
+            # Dimensiones del popup
+            popup.geometry("300x150")
+
+            # Añadir padding para que el contenido no esté unido al borde
+            popup.grid_columnconfigure(0, weight=1)
+            popup.grid_rowconfigure(0, weight=1)
+            popup.grid_rowconfigure(2, weight=1)
+
+            # Etiqueta con el mensaje de error
+            mensaje_label = tk.Label(popup, text="Error en la creación de usuario")
+            mensaje_label.grid(row=1, column=0, padx=20, pady=20)
+
+            # Botón de cerrar
+            cerrar_boton = tk.Button(popup, text="Cerrar", command=popup.destroy)
+            cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
+
+
+
+
+    def change_info(self, info):
+        self.actual_user.change_info(info)
+        self.actual_user_data = self.actual_user.get_info()
+        self.perfil_layout()
+
+
+
+    # Método para iniciar sesión
+    def iniciar_sesion(self, nombre, password):
+        path = f"./users/{nombre}"
+        fallo = False
+        if (os.path.exists(path)):
+            user = Usuario("", "", "", "", "")
+            user.read_from_file(nombre)
+            if (user.password == password):
+                self.actual_user = user
+                self.actual_user_data = user.get_info()
+                self.perfil_layout()
+            else:
+                fallo = True
+        else: 
+            fallo = True
+        
+        if (fallo):
+            popup = tk.Toplevel()
+            popup.title("Error")
+
+            # Dimensiones del popup
+            popup.geometry("300x150")
+
+            # Añadir padding para que el contenido no esté unido al borde
+            popup.grid_columnconfigure(0, weight=1)
+            popup.grid_rowconfigure(0, weight=1)
+            popup.grid_rowconfigure(2, weight=1)
+
+            # Etiqueta con el mensaje de error
+            mensaje_label = tk.Label(popup, text="Error en el inicio de sesión")
+            mensaje_label.grid(row=1, column=0, padx=20, pady=20)
+
+            # Botón de cerrar
+            cerrar_boton = tk.Button(popup, text="Cerrar", command=popup.destroy)
+            cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
+        
 
 
 
@@ -171,7 +246,7 @@ class Interface(tk.Tk):
         texto_no_tienes_cuenta.bind("<Button-1>", lambda e: self.registro_layout())
 
         # Crear el botón de iniciar sesión
-        boton_iniciar_sesion = tk.Button(marco_contenido, text="Iniciar Sesión", bg="white", font=("Helvetica", 14), command=self.perfil_layout)
+        boton_iniciar_sesion = tk.Button(marco_contenido, text="Iniciar Sesión", bg="white", font=("Helvetica", 14), command=lambda: self.iniciar_sesion(entry_usuario.get(), entry_contrasena.get()))
         boton_iniciar_sesion.pack(pady=25)
 
 
@@ -255,7 +330,14 @@ class Interface(tk.Tk):
         texto_tienes_cuenta.bind("<Button-1>", lambda e: self.iniciar_sesion_layout())
 
         # Crear el botón de registrar
-        boton_registrar = tk.Button(marco_formulario, text="Registrar", bg="white", font=("Helvetica", 12))
+        boton_registrar = tk.Button(marco_formulario, text="Registrar", bg="white", font=("Helvetica", 12), command= lambda: self.crear_usuario(
+            entry_nuevo_usuario.get(),
+            entry_nueva_contrasena.get(),
+            entry_confirmar_contrasena.get(),
+            entry_correo.get(),
+            entry_telefono.get(),
+            entry_domicilio.get()
+        ))
         boton_registrar.grid(row=7, column=1, pady=15)
 
 
@@ -303,38 +385,44 @@ class Interface(tk.Tk):
         label_usuario.grid(row=0, column=0, pady=10)
         entry_usuario = tk.Entry(marco_formulario, font=("Helvetica", 12), justify="center")
         entry_usuario.grid(row=0, column=1, pady=15)
-        entry_usuario.insert(0, "Usuario")
+        entry_usuario.insert(0, self.actual_user_data[0])
 
         # Crear el label y la entrada para la nueva contraseña
         label_contrasena = tk.Label(marco_formulario, text="Contraseña:", font=("Helvetica", 12), bg="white")
         label_contrasena.grid(row=1, column=0, pady=10)
         entry_contrasena = tk.Entry(marco_formulario, show="*", font=("Helvetica", 12), justify="center")
         entry_contrasena.grid(row=1, column=1, pady=15)
-        entry_contrasena.insert(0, "Contraseña")
+        entry_contrasena.insert(0, self.actual_user_data[1])
 
         # Label correo
         label_correo = tk.Label(marco_formulario, text="Correo:", font=("Helvetica", 12), bg="white")
         label_correo.grid(row=2, column=0, pady=10)
         entry_correo = tk.Entry(marco_formulario, font=("Helvetica", 12), justify="center")
         entry_correo.grid(row=2, column=1, pady=15)
-        entry_correo.insert(0, "Correo@correo.correo")
+        entry_correo.insert(0, self.actual_user_data[2])
 
         # Label teléfono
         label_telefono = tk.Label(marco_formulario, text="Teléfono:", font=("Helvetica", 12), bg="white")
         label_telefono.grid(row=3, column=0, pady=10)
         entry_telefono = tk.Entry(marco_formulario, font=("Helvetica", 12), justify="center")
         entry_telefono.grid(row=3, column=1, pady=15)
-        entry_telefono.insert(0, "1234567890")
+        entry_telefono.insert(0, self.actual_user_data[3])
 
         # Label domicilio
         label_domicilio = tk.Label(marco_formulario, text="Domicilio:", font=("Helvetica", 12), bg="white")
         label_domicilio.grid(row=4, column=0, pady=10)
         entry_domicilio = tk.Entry(marco_formulario, font=("Helvetica", 12), justify="center")
         entry_domicilio.grid(row=4, column=1, pady=15)
-        entry_domicilio.insert(0, "C/Calle Domicilio 123 A")
+        entry_domicilio.insert(0, self.actual_user_data[4])
 
         # Crear el botón de modificar
-        boton_registrar = tk.Button(marco_formulario, text="Guardar cambios", bg="white", font=("Helvetica", 12))
+        boton_registrar = tk.Button(marco_formulario, text="Guardar cambios", bg="white", font=("Helvetica", 12), command= lambda: self.change_info(
+            [entry_usuario.get(),
+            entry_contrasena.get(),
+            entry_correo.get(),
+            entry_telefono.get(),
+            entry_domicilio.get()]
+        ))
         boton_registrar.grid(row=5, column=1, pady=15)
 
 
@@ -612,6 +700,7 @@ class Interface(tk.Tk):
         self.limpiar()
         self.iniciar_sesion_layout()
         self.usuario_actual = None
+        self.usuario_actual_data = None
 
 
 

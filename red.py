@@ -11,6 +11,49 @@ class Red:
     self.bibliotecas.append(biblioteca)
 
 
+class Usuario:
+  nombre: str
+  password: str
+  correo: str
+  telefono: str
+  direccion: str
+  def __init__(self, nombre: str, password: str, correo: str, telefono: str,  direccion: str) -> None:
+    self.nombre = nombre
+    self.password = password
+    self.correo = correo
+    self.telefono = telefono
+    self.direccion = direccion
+  
+  def save_in_file(self):
+    path = "./users/" + self.nombre
+    with open(path, "w") as file:
+      file.write(self.nombre + "\n")
+      file.write(self.password + "\n")
+      file.write(self.correo + "\n")
+      file.write(self.telefono + "\n")
+      file.write(self.direccion + "\n")
+  
+  def read_from_file(self, id):
+    path = "./users/" + str(id)
+    with open(path, "r") as file:
+      self.nombre = file.readline().strip()
+      self.password = file.readline().strip()
+      self.correo = file.readline().strip()
+      self.telefono = file.readline().strip()
+      self.direccion = file.readline().strip()
+
+  def get_info(self):
+    info = [self.nombre, self.password, self.correo, self.telefono, self.direccion]
+    return info
+  
+  def change_info(self, info):
+    self.nombre = info[0]
+    self.password = info[1]
+    self.correo = info[2]
+    self.telefono = info[3]
+    self.direccion = info[4]
+    self.save_in_file()
+
 
 
 class Libro:
