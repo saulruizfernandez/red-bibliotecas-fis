@@ -151,6 +151,12 @@ class Interface(tk.Tk):
       boton_contacto.pack(pady=10, fill="x", side="bottom", padx=10)
 
 
+    # Metodo para rellenar listbox con busqueda
+    def insert_listbox(self, busqueda, listbox):
+        listbox.delete(0, "end")
+        for libros in self.catalogo.buscar("title", str(busqueda)):
+            listbox.insert("end", libros)
+
     def mostrar_horas(self, dia, frame_horas):
         self.limpiar(frame_horas)
         # Label de horas
@@ -461,10 +467,6 @@ class Interface(tk.Tk):
         entry_busqueda = tk.Entry(frame_busqueda, font=("Helvetica", 12), justify="left")
         entry_busqueda.grid(row=0, column=1, pady=10, sticky="ew")
 
-        # Botón de búsqueda
-        boton_busqueda = tk.Button(frame_busqueda, text="Buscar", bg="white", font=("Helvetica", 12))
-        boton_busqueda.grid(row=0, column=2, pady=10, padx=10)
-
         # Frame de resultados
         frame_resultados = tk.Frame(frame_contenido, bg="white")
         frame_resultados.grid(row=1, column=0, sticky="nsew")
@@ -473,11 +475,18 @@ class Interface(tk.Tk):
         scrollbar = tk.Scrollbar(frame_resultados)
         scrollbar.pack(side="right", fill="y" ,padx=(0,20),pady=10)
 
+        # Label de campos
+        label_campos = tk.Label(frame_resultados, text="Formato: Titulo, Autor, Genero, Paginas, Editorial, Reservado, Usuario, Fecha entrega", font=("Helvetica", 12), bg="white")
+        label_campos.pack(side="top", fill="y",padx=10, pady=2, anchor="w")
+
+        # Listbox de resultados
         listbox = tk.Listbox(frame_resultados, yscrollcommand=scrollbar.set, selectmode="single", font=("Helvetica", 12))
-        for libros in self.catalogo.buscar("title", str(entry_busqueda.get())):
-            listbox.insert("end", libros)
-        listbox.pack(side="left", fill="both",expand=True,padx=10, pady=2)
+        listbox.pack(side="top", fill="both",expand=True,padx=10, pady=2)
         scrollbar.config(command=listbox.yview)
+
+        # Botón de búsqueda lambda: self.insert_listbox(entry_busqueda.get(), listbox)
+        boton_busqueda = tk.Button(frame_busqueda, text="Buscar", bg="white", font=("Helvetica", 12), command=lambda: self.insert_listbox(entry_busqueda.get(), listbox))
+        boton_busqueda.grid(row=0, column=2, pady=10, padx=10)
 
         # Función para mostrar el libro seleccionado
         listbox.bind("<Button-1>", lambda e: entry_libro_seleccionado.delete(0, "end") or entry_libro_seleccionado.insert(0, listbox.get(listbox.curselection() or 0)))
