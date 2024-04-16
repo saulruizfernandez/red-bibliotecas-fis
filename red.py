@@ -6,7 +6,7 @@ class Red:
   def __init__(self) -> None:
     pass
 
-  def __init__(self, bibliotecas: list) -> None:
+  def __init__(self, bibliotecas: list=list()) -> None:
     self.bibliotecas = bibliotecas
 
   def incluir_biblioteca(self, biblioteca: list) -> None:
@@ -134,11 +134,15 @@ class Libro:
   isbn: int
   generos: list
   autores: list
-  def __init__(self, titulo: str, isbn: int, generos: list, autores: list) -> None:
+  publisher: str
+  pages: int
+  def __init__(self, titulo: str, isbn: int, generos: list, autores: list, publisher: str, pages: int) -> None:
     self.titulo = titulo
     self.isbn = isbn
     self.generos = generos
     self.autores = autores
+    self.publisher = publisher
+    self.pages = pages
 
 
 
@@ -156,8 +160,9 @@ class Catalogo:
 class Biblioteca:
   catalogo: Catalogo
   salas: list
-  def __init__(self, ubicacion: str, catalogo: Catalogo, salas=list()) -> None:
+  def __init__(self, ubicacion: str="", catalogo: Catalogo=Catalogo(), salas=list()) -> None:
     self.ubicacion = ubicacion
+    self.catalogo = catalogo
     self.salas = salas
 
 
