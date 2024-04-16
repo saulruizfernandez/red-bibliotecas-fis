@@ -2,7 +2,7 @@ import tkinter as tk
 import datetime
 import locale
 import os
-from red import Usuario
+from red import *
 
 locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
@@ -54,11 +54,7 @@ class Interface(tk.Tk):
         self.iniciar_sesion_layout()  # Llamar al método para mostrar la interfaz de inicio de sesión
         self.actual_user = None  # Variable para almacenar el usuario actual
         self.actual_user_data = None  # Variable para almacenar los datos del usuario actual
-
-
-
-
-
+        self.user_reserves = None  # Variable para almacenar las reservas del usuario actual
 
 
     # Método para limpiar la ventana
@@ -71,14 +67,11 @@ class Interface(tk.Tk):
                 widget.destroy()
 
 
-
-
-
     # Método para crear un nuevo usuario
     def crear_usuario(self, nombre, password, confirmar_password, correo, telefono, direccion):
         if (password == confirmar_password and len(password) > 0 and len(nombre) > 0 and len(correo) > 0 and len(telefono) > 0 and len(direccion) > 0 and not os.path.exists(f"./users/{nombre}")):
             self.actual_user = Usuario(nombre, password, correo, telefono, direccion)
-            self.actual_user.save_in_file()
+            # self.actual_user.save_in_file()
             self.actual_user_data = self.actual_user.get_info()
             self.perfil_layout()
         else:
@@ -102,32 +95,16 @@ class Interface(tk.Tk):
             cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
 
 
-
-
     def change_info(self, info):
-        self.actual_user.change_info(info)
+        self.actual_user.modify_information(info[0], info[1], info[2], info[3], info[4])
         self.actual_user_data = self.actual_user.get_info()
         self.perfil_layout()
 
 
-
     # Método para iniciar sesión
     def iniciar_sesion(self, nombre, password):
-        path = f"./users/{nombre}"
-        fallo = False
-        if (os.path.exists(path)):
-            user = Usuario("", "", "", "", "")
-            user.read_from_file(nombre)
-            if (user.password == password):
-                self.actual_user = user
-                self.actual_user_data = user.get_info()
-                self.perfil_layout()
-            else:
-                fallo = True
-        else: 
-            fallo = True
-        
-        if (fallo):
+        fallo = login(nombre, password)        
+        if (not fallo):
             popup = tk.Toplevel()
             popup.title("Error")
 
@@ -146,9 +123,10 @@ class Interface(tk.Tk):
             # Botón de cerrar
             cerrar_boton = tk.Button(popup, text="Cerrar", command=popup.destroy)
             cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
-        
-
-
+        else:
+            self.actual_user = Usuario(nombre, "", "", "", "")
+            self.actual_user_data = self.actual_user.get_info()
+            self.perfil_layout()
 
 
     # Metodo para crear barra lateral
@@ -172,12 +150,6 @@ class Interface(tk.Tk):
       boton_contacto.pack(pady=10, fill="x", side="bottom", padx=10)
 
 
-
-
-
-
-
-
     def mostrar_horas(self, dia, frame_horas):
         self.limpiar(frame_horas)
         # Label de horas
@@ -196,33 +168,12 @@ class Interface(tk.Tk):
                 boton_hora.grid(row=i, column=j, padx=10, pady=10)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Método para mostrar la interfaz de inicio de sesión
     def iniciar_sesion_layout(self):
         self.limpiar()
         # Crear el marco para el contenido principal
         marco_contenido = tk.Frame(self.base, bg="white")  # No necesitas especificar el ancho, el Frame se ajustará automáticamente
         marco_contenido.pack(side="right", fill="both", expand=True)  # Expandir el Frame para que ocupe el espacio disponible
-        
-        # Crear el marco para la barra lateral
-        # marco_barra_lateral = tk.Frame(self.base, bg="gray", width=200)
-        # marco_barra_lateral.pack(side="left", fill="y")
 
         # Crear el título
         titulo = tk.Label(marco_contenido, text="Inicio de Sesión", font=("Helvetica", 24), bg="white")
@@ -250,20 +201,6 @@ class Interface(tk.Tk):
         boton_iniciar_sesion.pack(pady=25)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Método para mostrar la interfaz de registro
     def registro_layout(self):
         self.limpiar()
@@ -279,10 +216,6 @@ class Interface(tk.Tk):
         marco_formulario.grid(row=1, column=0, columnspan=2, sticky="nsew")
         marco_formulario.grid_columnconfigure((0,1), weight=1)  # Ajustar la columna 0 del grid con grid_columnconfigure
         marco_formulario.grid_rowconfigure((0,1,2,3,4,5,6,7), weight=1)  # Ajustar la fila 0 del grid con grid_rowconfigure
-        
-        # Crear el marco para la barra lateral
-        # marco_barra_lateral = tk.Frame(self.base, bg="gray", width=200)
-        # marco_barra_lateral.pack(side="left", fill="y")
 
         # Crear el título
         titulo = tk.Label(marco_titulo, text="Registrarse", font=("Helvetica", 24), bg="white")
@@ -341,18 +274,6 @@ class Interface(tk.Tk):
         boton_registrar.grid(row=7, column=1, pady=15)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
   # Metodo para mostrar la interfaz del perfil
     def perfil_layout(self):
         self.limpiar()
@@ -392,7 +313,7 @@ class Interface(tk.Tk):
         label_contrasena.grid(row=1, column=0, pady=10)
         entry_contrasena = tk.Entry(marco_formulario, show="*", font=("Helvetica", 12), justify="center")
         entry_contrasena.grid(row=1, column=1, pady=15)
-        entry_contrasena.insert(0, self.actual_user_data[1])
+        entry_contrasena.insert(0, self.actual_user.decrypt_password(self.actual_user_data[1]))
 
         # Label correo
         label_correo = tk.Label(marco_formulario, text="Correo:", font=("Helvetica", 12), bg="white")
@@ -686,21 +607,12 @@ class Interface(tk.Tk):
             label_correo.grid(row=i, column=2, pady=10, padx=10)
 
 
-
-
-
-
-
-
-
-
-
-
     def cerrar_sesion(self):
         self.limpiar()
         self.iniciar_sesion_layout()
-        self.usuario_actual = None
-        self.usuario_actual_data = None
+        self.actual_user = None
+        self.actual_user_data = None
+        self.user_reserves = None
 
 
 

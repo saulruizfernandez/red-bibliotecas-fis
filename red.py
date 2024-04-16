@@ -1,3 +1,5 @@
+import csv
+
 # Almacena las bibliotecas que forman una red y permite añadir bibliotecas
 class Red:
   bibliotecas: set # Tipo explícito para evitar confusiones
@@ -12,47 +14,118 @@ class Red:
 
 
 class Usuario:
-  nombre: str
-  password: str
-  correo: str
-  telefono: str
-  direccion: str
-  def __init__(self, nombre: str, password: str, correo: str, telefono: str,  direccion: str) -> None:
-    self.nombre = nombre
-    self.password = password
-    self.correo = correo
-    self.telefono = telefono
-    self.direccion = direccion
+  def __init__(self, name, password, email, phone, location):
+    # Check if the user already exist
+    self.name = name
+    if not self.user_exists(name):
+      self.name = name
+      self.password = self.encrypt_password(password)
+      self.email = email
+      self.phone = phone
+      self.location = location
+    
+      # Append the user data to the CSV file
+      with open('./config/users.csv', mode='a', newline='\n') as file:
+        writer = csv.writer(file)
+        writer.writerow([self.name, self.password, self.email, self.phone, self.location])
+    else:
+      users = []
+      with open('./config/users.csv', mode='r', newline='\n') as file:
+        reader = csv.reader(file)
+        for row in reader:
+          users.append(row)
+      for user in users:
+        if name == user[0]:
+          self.password = user[1]
+          self.email = user[2]
+          self.phone = user[3]
+          self.location = user[4]
+
+  def user_exists(self, name):
+    # Check if the user exists in the CSV file
+    with open('./config/users.csv', mode='r', newline='\n') as file:
+      reader = csv.reader(file)
+      for row in reader:
+        if row[0] == name:
+          return True
+    return False
+
+  def encrypt_password(self, password):
+    encrypted_password = ''
+    for char in password:
+      if char.isalpha():  # Solo cifra caracteres alfabéticos
+        shifted_char = chr((ord(char) - ord('a') + 3) % 26 + ord('a'))
+        encrypted_password += shifted_char
+      else:
+        encrypted_password += char
+    return encrypted_password
   
-  def save_in_file(self):
-    path = "./users/" + self.nombre
-    with open(path, "w") as file:
-      file.write(self.nombre + "\n")
-      file.write(self.password + "\n")
-      file.write(self.correo + "\n")
-      file.write(self.telefono + "\n")
-      file.write(self.direccion + "\n")
-  
-  def read_from_file(self, id):
-    path = "./users/" + str(id)
-    with open(path, "r") as file:
-      self.nombre = file.readline().strip()
-      self.password = file.readline().strip()
-      self.correo = file.readline().strip()
-      self.telefono = file.readline().strip()
-      self.direccion = file.readline().strip()
+  def decrypt_password(self, password):
+    decrypted_password = ''
+    for char in self.password:
+      if char.isalpha():  # Solo descifra caracteres alfabéticos
+        shifted_char = chr((ord(char) - ord('a') - 3) % 26 + ord('a'))
+        decrypted_password += shifted_char
+      else:
+        decrypted_password += char
+    return decrypted_password
+
+  def modify_information(self, name=None, password=None, email=None, phone=None, location=None):
+    if name:
+      self.name = name
+    if password:
+      self.password = self.encrypt_password(password)
+    if email:
+      self.email = email
+    if phone:
+      self.phone = phone
+    if location:
+      self.location = location
+    self.update_csv()
 
   def get_info(self):
-    info = [self.nombre, self.password, self.correo, self.telefono, self.direccion]
-    return info
+    # Return a list with all attributes except id
+    return [self.name, self.password, self.email, self.phone, self.location]
+
+  def update_csv(self):
+    # Read all users from the CSV file
+    users = []
+    with open('./config/users.csv', mode='r', newline='\n') as file:
+      reader = csv.reader(file)
+      for row in reader:
+        users.append(row)
+
+    # Update the information of the current user
+    for user in users:
+      if user[0] == self.name:
+        user[1] = self.password
+        user[2] = self.email
+        user[3] = self.phone
+        user[4] = self.location
+        break
+
+    # Write all users back to the CSV file
+    with open('./config/users.csv', mode='w', newline='\n') as file:
+      writer = csv.writer(file)
+      writer.writerows(users)
+
+def login(username, password):
+  # Encrypt the password
+  encripted_password = ''
+  for char in password:
+    if char.isalpha():  # Solo cifra caracteres alfabéticos
+      shifted_char = chr((ord(char) - ord('a') + 3) % 26 + ord('a'))
+      encripted_password += shifted_char
+    else:
+      encripted_password += char
   
-  def change_info(self, info):
-    self.nombre = info[0]
-    self.password = info[1]
-    self.correo = info[2]
-    self.telefono = info[3]
-    self.direccion = info[4]
-    self.save_in_file()
+  # Check if the user exists and the password is correct
+  with open('./config/users.csv', mode='r', newline='\n') as file:
+    reader = csv.reader(file)
+    for row in reader:
+      if str(row[0]) == str(username) and str(row[1]) == str(encripted_password):
+        return True
+  return False
 
 
 
