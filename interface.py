@@ -44,7 +44,7 @@ contactos = [   [
             ]
 
 class Interface(tk.Tk):
-    def __init__(self):
+    def __init__(self, catalogo):
         # Definicion de aspectos generales
         super().__init__()
         self.title("App")
@@ -55,6 +55,7 @@ class Interface(tk.Tk):
         self.actual_user = None  # Variable para almacenar el usuario actual
         self.actual_user_data = None  # Variable para almacenar los datos del usuario actual
         self.user_reserves = None  # Variable para almacenar las reservas del usuario actual
+        self.catalogo = catalogo  # Variable para almacenar el catálogo de la biblioteca
 
 
     # Método para limpiar la ventana
@@ -166,6 +167,7 @@ class Interface(tk.Tk):
             for j in range(5):
                 boton_hora = tk.Button(frame_botones_horas, text=f"{(i*5)+7+j}:00", bg="white", font=("Helvetica", 12), width=4)
                 boton_hora.grid(row=i, column=j, padx=10, pady=10)
+                boton_hora.config(command=lambda b=boton_hora: (b.config(state=tk.DISABLED)))
 
 
     # Método para mostrar la interfaz de inicio de sesión
@@ -472,8 +474,8 @@ class Interface(tk.Tk):
         scrollbar.pack(side="right", fill="y" ,padx=(0,20),pady=10)
 
         listbox = tk.Listbox(frame_resultados, yscrollcommand=scrollbar.set, selectmode="single", font=("Helvetica", 12))
-        for i in range(100):
-            listbox.insert("end", f"  Libro {i}",)
+        for libros in self.catalogo.buscar("title", str(entry_busqueda.get())):
+            listbox.insert("end", libros)
         listbox.pack(side="left", fill="both",expand=True,padx=10, pady=2)
         scrollbar.config(command=listbox.yview)
 
