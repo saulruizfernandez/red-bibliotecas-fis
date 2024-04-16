@@ -49,8 +49,13 @@ class Catalogo:
         """
         Busca las entradas de la tabla material que cumplen con el criterio de búsqueda.
         """
-        for row in self.cursor.execute(f"SELECT * FROM material WHERE {campo} = '{valor}'"):
-            print(row)
+        resultados = []
+        for row in self.cursor.execute(f"SELECT * FROM material WHERE LOWER({campo}) LIKE LOWER('%{valor}%')"):
+            resultados.append(str(row))
+
+        for resultado in resultados:
+            print(resultado)
+        return resultados
 
     def prestar(self, title, usuario):
         """
