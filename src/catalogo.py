@@ -56,6 +56,15 @@ class Catalogo:
         # for resultado in resultados:
         #     print(resultado)
         return resultados
+    
+    def esta_prestado(self, titulo):
+        """
+        Comprueba si está prestado el libro
+        """
+        self.cursor.execute(f"SELECT borrow FROM material WHERE title = '{titulo}'")
+        if (str(titulo) == "1"):
+            return True
+        return False
 
     def prestar(self, title, usuario):
         """
