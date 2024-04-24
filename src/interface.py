@@ -174,9 +174,30 @@ class Interface(tk.Tk):
     
     def reservar_libro(self, libro, popup):
         popup.destroy()
-        # self.catalogo.prestar(libro, self.actual_user_data[0])
-        self.actual_user.reserve(libro, 0)
-        self.user_reserves = self.actual_user.get_reserves()
+        libro2 = libro.split(',')[1][1:]
+        if (self.catalogo.esta_prestado(libro2)):
+            popup = tk.Toplevel()
+            popup.title("Error")
+
+            # Dimensiones del popup
+            popup.geometry("300x150")
+
+            # Añadir padding para que el contenido no esté unido al borde
+            popup.grid_columnconfigure(0, weight=1)
+            popup.grid_rowconfigure(0, weight=1)
+            popup.grid_rowconfigure(2, weight=1)
+
+            # Etiqueta con el mensaje de error
+            mensaje_label = tk.Label(popup, text="Error en la reserva del libro")
+            mensaje_label.grid(row=1, column=0, padx=20, pady=20)
+
+            # Botón de cerrar
+            cerrar_boton = tk.Button(popup, text="Cerrar", command=popup.destroy)
+            cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
+        else:
+            self.catalogo.prestar(libro2, self.actual_user_data[0])
+            self.actual_user.reserve(libro, 0)
+            self.user_reserves = self.actual_user.get_reserves()
         self.reservar_libro_layout()
 
     def reservar_sala_label(self, sala):

@@ -61,8 +61,8 @@ class Catalogo:
         """
         Comprueba si está prestado el libro
         """
-        result = self.cursor.execute(f"SELECT borrow FROM material WHERE title = {titulo}")
-        print("el libro prestado" + result.fetchone())
+        self.cursor.execute(f"SELECT borrow FROM material WHERE title = {titulo}")
+        result = self.cursor.fetchone()
         if (str(result) == "1.0"):
             return True
         return False
