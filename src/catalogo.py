@@ -70,9 +70,9 @@ class Catalogo:
         """
         Registra el préstamo de un libro.
         """
-        self.cursor.execute(f"UPDATE material SET borrow = 1 WHERE title = '{title}'")
-        self.cursor.execute(f"UPDATE material SET deadline = '{(datetime.datetime.now() + datetime.timedelta(days=15)).strftime('%Y-%m-%d %H:%M:%S')}' WHERE title = '{title}'")
-        self.cursor.execute(f"UPDATE material SET user = '{usuario}' WHERE title = '{title}'")
+        self.cursor.execute(f"UPDATE material SET borrow = 1 WHERE title = {title}")
+        self.cursor.execute(f"UPDATE material SET deadline = '{(datetime.datetime.now() + datetime.timedelta(days=15)).strftime('%Y-%m-%d %H:%M:%S')}' WHERE title = {title}")
+        self.cursor.execute(f"UPDATE material SET user = '{usuario}' WHERE title = {title}")
 
     def renovar_prestamo(self, title):
         """
