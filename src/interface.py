@@ -127,6 +127,7 @@ class Interface(tk.Tk):
         else:
             self.actual_user = Usuario(nombre, "", "", "", "")
             self.actual_user_data = self.actual_user.get_info()
+            self.user_reserves = self.actual_user.get_reserves()
             self.perfil_layout()
 
 
@@ -157,6 +158,49 @@ class Interface(tk.Tk):
         for libros in self.catalogo.buscar("title", str(busqueda)):
             listbox.insert("end", libros)
 
+    def reservar_libro_label(self, libro):
+        confirmacion = tk.Toplevel()
+        confirmacion.title("Confirmación")
+        confirmacion.geometry("600x450")
+        confirmacion.grid_columnconfigure(0, weight=1)
+        confirmacion.grid_rowconfigure(0, weight=1)
+        confirmacion.grid_rowconfigure(2, weight=1)
+        mensaje_label = tk.Label(confirmacion, text=f"¿Desea reservar este libro?\n{libro}", font=("Helvetica", 12))
+        mensaje_label.grid(row=1, column=0, padx=20, pady=20)
+        cerrar_boton = tk.Button(confirmacion, text="Cerrar", command=confirmacion.destroy)
+        cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
+        reservar_boton = tk.Button(confirmacion, text="Reservar", command=lambda: self.reservar_libro(libro, confirmacion))
+        reservar_boton.grid(row=4, column=0, padx=20, pady=20)
+    
+    def reservar_libro(self, libro, popup):
+        popup.destroy()
+        # self.catalogo.prestar(libro, self.actual_user_data[0])
+        self.actual_user.reserve(libro, 0)
+        self.user_reserves = self.actual_user.get_reserves()
+        self.reservar_libro_layout()
+
+    def reservar_sala_label(self, sala):
+        confirmacion = tk.Toplevel()
+        confirmacion.title("Confirmación")
+        confirmacion.geometry("600x450")
+        confirmacion.grid_columnconfigure(0, weight=1)
+        confirmacion.grid_rowconfigure(0, weight=1)
+        confirmacion.grid_rowconfigure(2, weight=1)
+        mensaje_label = tk.Label(confirmacion, text=f"¿Desea reservar la sala en la siguiente fecha?\n{sala}", font=("Helvetica", 12))
+        mensaje_label.grid(row=1, column=0, padx=20, pady=20)
+        cerrar_boton = tk.Button(confirmacion, text="Cerrar", command=confirmacion.destroy)
+        cerrar_boton.grid(row=3, column=0, padx=20, pady=20)
+        reservar_boton = tk.Button(confirmacion, text="Reservar", command=lambda: self.reservar_sala(sala, confirmacion))
+        reservar_boton.grid(row=4, column=0, padx=20, pady=20)
+
+
+    def reservar_sala(self, sala, confirmacion):
+        confirmacion.destroy()
+        self.actual_user.reserve(sala, 1)
+        self.user_reserves = self.actual_user.get_reserves()
+        self.reservar_sala_layout()
+
+
     def mostrar_horas(self, dia, frame_horas):
         self.limpiar(frame_horas)
         # Label de horas
@@ -171,9 +215,10 @@ class Interface(tk.Tk):
         # Botones de horas
         for i in range(3):
             for j in range(5):
+                hora = 7+(i*5)+j
                 boton_hora = tk.Button(frame_botones_horas, text=f"{(i*5)+7+j}:00", bg="white", font=("Helvetica", 12), width=4)
                 boton_hora.grid(row=i, column=j, padx=10, pady=10)
-                boton_hora.config(command=lambda b=boton_hora: (b.config(state=tk.DISABLED)))
+                boton_hora.config(command=lambda hora=hora: self.reservar_sala_label(f"{get_day(dia)} {hora}:00"))
 
 
     # Método para mostrar la interfaz de inicio de sesión
@@ -355,20 +400,6 @@ class Interface(tk.Tk):
         boton_registrar.grid(row=5, column=1, pady=15)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def reservar_sala_layout(self):
         self.limpiar()
         marco_contenido = tk.Frame(self.base, bg="white")
@@ -411,25 +442,6 @@ class Interface(tk.Tk):
                 boton_dia = tk.Button(frame_botones_dias, text=f"{get_day(day)}", bg="white", font=("Helvetica", 12), width=4, command=lambda day=day: self.mostrar_horas(day, frame_horas))
                 boton_dia.grid(row=i, column=j, padx=10, pady=10)
         
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def reservar_libro_layout(self):
         self.limpiar()
@@ -484,7 +496,7 @@ class Interface(tk.Tk):
         listbox.pack(side="top", fill="both",expand=True,padx=10, pady=2)
         scrollbar.config(command=listbox.yview)
 
-        # Botón de búsqueda lambda: self.insert_listbox(entry_busqueda.get(), listbox)
+        # Botón de búsqueda
         boton_busqueda = tk.Button(frame_busqueda, text="Buscar", bg="white", font=("Helvetica", 12), command=lambda: self.insert_listbox(entry_busqueda.get(), listbox))
         boton_busqueda.grid(row=0, column=2, pady=10, padx=10)
 
@@ -502,7 +514,7 @@ class Interface(tk.Tk):
         entry_libro_seleccionado.insert(0, "Libro seleccionado")
 
         # Botón reservar
-        boton_reservar = tk.Button(frame_reservar, text="Reservar", bg="white", font=("Helvetica", 12))
+        boton_reservar = tk.Button(frame_reservar, text="Reservar", bg="white", font=("Helvetica", 12), command=lambda: self.reservar_libro_label(entry_libro_seleccionado.get()))
         boton_reservar.grid(row=0, column=1, pady=10, padx=10)
 
 
@@ -547,8 +559,8 @@ class Interface(tk.Tk):
         scrollbar.pack(side="right", fill="y" ,padx=(0,20),pady=10)
 
         listbox = tk.Listbox(frame_resultados, yscrollcommand=scrollbar.set, selectmode="single", font=("Helvetica", 12))
-        for i in range(10):
-            listbox.insert("end", f"  Pedido {i}",)
+        for reserves in self.actual_user.get_reserves_list():
+            listbox.insert("end", reserves,)
         listbox.pack(side="left", fill="both",expand=True,padx=10, pady=2)
         scrollbar.config(command=listbox.yview)
 

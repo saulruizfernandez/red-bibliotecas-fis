@@ -28,6 +28,11 @@ class Usuario:
       with open('../config/users.csv', mode='a', newline='\n') as file:
         writer = csv.writer(file)
         writer.writerow([self.name, self.password, self.email, self.phone, self.location])
+      
+      # Create a new CSV file for the user's reserves
+      with open(f'../config/reserves_{self.name}.csv', mode='w', newline='\n') as file:
+        writer = csv.writer(file)
+        writer.writerow([self.name, '0','0'])
     else:
       users = []
       with open('../config/users.csv', mode='r', newline='\n') as file:
@@ -108,6 +113,59 @@ class Usuario:
     with open('../config/users.csv', mode='w', newline='\n') as file:
       writer = csv.writer(file)
       writer.writerows(users)
+  
+  def get_reserves(self):
+    # Read all reserves from the CSV file
+    reserves = []
+    with open('../config/reserves.csv', mode='r', newline='\n') as file:
+      reader = csv.reader(file)
+      for row in reader:
+        if row[0] == self.name:
+          return row
+    return reserves
+  
+  def get_reserves_list(self):
+    reserves_list = []
+    reserves = self.get_reserves()
+    reserves_list.append("Libros:")
+    for reserve in reserves[1].split("/"):
+      reserves_list.append(reserve)
+    reserves_list.append("Salas:")
+    for reserve in reserves[2].split("/"):
+      reserves_list.append(reserve)
+    return reserves_list
+
+  
+  def reserve(self, reserve, type):
+    # Append the reserve data to the CSV file
+    new_info = self.get_reserves()
+    if (type == 0):
+      if (new_info[1] == '0'):
+        new_info[1] = f"{reserve}"
+      else:
+        new_info[1] += f"/{reserve}"
+    else:
+      if (new_info[2] == '0'):
+        new_info[2] = f"({reserve})"
+      else:
+        new_info[2] += f"/({reserve})"
+    reserves = []
+    with open('../config/reserves.csv', mode='r', newline='\n') as file:
+      reader = csv.reader(file)
+      for row in reader:
+        reserves.append(row)
+
+    # Update the information of the current user
+    for reser in reserves:
+      if reser[0] == self.name:
+        reser[1] = new_info[1]
+        reser[2] = new_info[2]
+        break
+
+    # Write all users back to the CSV file
+    with open('../config/reserves.csv', mode='w', newline='\n') as file:
+      writer = csv.writer(file)
+      writer.writerows(reserves)
 
 def login(username, password):
   # Encrypt the password
