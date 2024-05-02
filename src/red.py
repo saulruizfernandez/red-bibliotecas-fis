@@ -29,10 +29,10 @@ class Usuario:
         writer = csv.writer(file)
         writer.writerow([self.name, self.password, self.email, self.phone, self.location])
       
-      # Create a new CSV file for the user's reserves
-      with open(f'../config/reserves_{self.name}.csv', mode='w', newline='\n') as file:
+      # Modify the reserves file
+      with open('../config/reserves.csv', mode='a', newline='\n') as file:
         writer = csv.writer(file)
-        writer.writerow([self.name, '0','0'])
+        writer.writerow([self.name, 0, 0])
     else:
       users = []
       with open('../config/users.csv', mode='r', newline='\n') as file:
